@@ -191,7 +191,7 @@ df.loc[df["Ticker"].isin(etf_list), "Sector"] = "Index"
 df["Percentage"] = (df["Market value"] / df["Market value"].sum())
 
 # Import EPS CAGR for 3 years
-def get_eps_cagr_3y(ticker):
+def calculate_eps_cagr_3y(ticker):
     """
     Fetches EPS data for a ticker and calculates 3-year EPS CAGR.
     Returns None if data is missing or invalid.
@@ -218,17 +218,65 @@ def get_eps_cagr_3y(ticker):
     except Exception:
         return None
 
-df["eps_CAGR_3y"] = df["Ticker"].apply(get_eps_cagr_3y)
+df["eps_CAGR_3y"] = df["Ticker"].apply(calculate_eps_cagr_3y)
 
 
-# def calculate_fcf_cagr_3y(fcf_series):
-#     try:
-#         fcf_series = fcf_series.dropna().sort_index(ascending=False)
-#         if len(fcf_series) < 4 or fcf_series.iloc[3] <= 0:
-#             return None
-#         return (fcf_series.iloc[0] / fcf_series.iloc[3]) ** (1/3) - 1
-#     except Exception:
-#         return None
+import yfinance as yf
+
+import yfinance as yf
+
+def calculate_fcf_cagr_3y(ticker):
+    """
+    Calculates 3-year Free Cash Flow CAGR using Yahoo Finance data.
+    Returns None if data is missing or invalid.
+    """
+    try:
+        stock = yf.Ticker(ticker)
+        cashflow_df = stock.cashflow
+
+        if cashflow_df is None or cashflow_df.empty:
+            return None
+
+        # Possible label variations
+        ocf_labels = [
+            "Operating Cash Flow",
+            "Net Cash Provided by Operating Activities",
+            "Net Cash from Operating Activities",
+            "Cash Flow from Operations"
+        ]
+
+        capex_labels = [
+            "Capital Expenditures",
+            "Capital Expenditure",
+            "Purchase of PPE"
+        ]
+
+        # Find matching labels
+        ocf_label = next((l for l in ocf_labels if l in cashflow_df.index), None)
+        capex_label = next((l for l in capex_labels if l in cashflow_df.index), None)
+
+        if ocf_label is None or capex_label is None:
+            return None
+
+        # Calculate Free Cash Flow
+        fcf_series = (
+            cashflow_df.loc[ocf_label]
+            + cashflow_df.loc[capex_label]  # CapEx is negative
+        ).dropna()
+
+        # Ensure newest → oldest
+        fcf_series = fcf_series.sort_index(ascending=False)
+
+        if len(fcf_series) < 4 or fcf_series.iloc[3] <= 0:
+            return None
+
+        return (fcf_series.iloc[0] / fcf_series.iloc[3]) ** (1/3) - 1
+
+    except Exception:
+        return None
+
+
+df["fcf_CAGR_3y"] = df["Ticker"].apply(calculate_fcf_cagr_3y)
 
 # 6. Save to Excel
 
