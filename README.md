@@ -10,6 +10,11 @@ Using Python, the project automates data collection, metric calculation (market 
 
 This project demonstrates practical skills in Python, financial data engineering, business analytics, and data visualization, while showcasing a long-term, process-driven approach to investing.
 
+
+## Note: 
+All portfolio values, holdings, and figures shown in this project are sample or modified data and do not represent my actual investment portfolio.
+
+
 ## Link to the Tableau Dashboard 
 
 https://public.tableau.com/app/profile/tharindu.abeysinghe/viz/InvestmentPortfolioMonitoringDashboard/OverallSummary
